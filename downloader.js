@@ -14,9 +14,10 @@ export function downloadShort(videoId) {
   const outTemplate = `downloads/${videoId}.%(ext)s`;
 
   console.log(`⬇️   Downloading ${videoId}...`);
+  const cookiesFlag = existsSync('cookies.txt') ? '--cookies cookies.txt' : '';
   execSync(
     `yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]" ` +
-    `--merge-output-format mp4 -o "${outTemplate}" ` +
+    `--merge-output-format mp4 ${cookiesFlag} -o "${outTemplate}" ` +
     `"https://youtube.com/shorts/${videoId}"`,
     { stdio: ['pipe', 'pipe', 'pipe'] }
   );
