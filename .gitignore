@@ -1,0 +1,11 @@
+node_modules/
+downloads/
+token.json
+client_secret.json
+.env
+seen.json
+queue.json
+state.json
+*.mp4
+*.webm
+.DS_Store
