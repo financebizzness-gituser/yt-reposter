@@ -53,7 +53,6 @@ jobs:
           echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
 
       - name: Write YouTube cookies
-        if: ${{ secrets.YOUTUBE_COOKIES != '' }}
         run: echo "${{ secrets.YOUTUBE_COOKIES }}" > cookies.txt
 
       - name: Run scheduler
