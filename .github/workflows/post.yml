@@ -1,8 +1,8 @@
-name: Post Short Every 2 Hours
+name: Post Short Every 5 Hours
 
 on:
   schedule:
-    - cron: '0 */2 * * *'   # every 2 hours
+    - cron: '0 */5 * * *'   # every 5 hours → 5 posts/day spread across 24h
   workflow_dispatch:         # manual trigger from GitHub UI
 
 jobs:
