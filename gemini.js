@@ -9,7 +9,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import 'dotenv/config';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-preview-04-17' });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
 // ── Generate metadata for a Short ────────────────────────────────────────
 export async function generateMetadata(originalTitle, channelHandle) {

@@ -16,14 +16,14 @@ export function downloadShort(videoId) {
   console.log(`⬇️   Downloading ${videoId}...`);
   const cookiesFlag = existsSync('cookies.txt') ? '--cookies cookies.txt' : '';
   execSync(
-    `yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]" ` +
-    `--merge-output-format mp4 ${cookiesFlag} -o "${outTemplate}" ` +
+    `yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" ` +
+    `--merge-output-format mp4 --remux-video mp4 ${cookiesFlag} -o "${outTemplate}" ` +
     `"https://youtube.com/shorts/${videoId}"`,
-    { stdio: ['pipe', 'pipe', 'pipe'] }
+    { stdio: 'inherit' }
   );
 
-  // Find the downloaded file (extension may vary)
-  const file = readdirSync('downloads').find(f => f.startsWith(videoId));
+  // Find the merged mp4 file
+  const file = readdirSync('downloads').find(f => f.startsWith(videoId) && f.endsWith('.mp4'));
   if (!file) throw new Error(`Download failed: file not found for ${videoId}`);
 
   const path = join('downloads', file);
