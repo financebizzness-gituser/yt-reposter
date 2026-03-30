@@ -39,10 +39,12 @@ Rules:
     const clean  = text.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
     const data   = JSON.parse(clean);
 
+    // Add hashtags to description so they're visible on YouTube
+    const hashtagLine = data.hashtags.map(t => `#${t.replace(/^#/, '')}`).join(' ');
     return {
       title:       data.title,
-      description: data.description,
-      tags:        data.hashtags,
+      description: `${data.description}\n\n${hashtagLine}`,
+      tags:        data.hashtags.map(t => t.replace(/^#/, '')),
     };
   } catch (err) {
     console.warn(`⚠️  Gemini metadata failed, using original title. ${err.message}`);
