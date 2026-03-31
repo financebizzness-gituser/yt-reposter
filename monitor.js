@@ -4,7 +4,7 @@
  */
 
 import { execSync } from 'child_process';
-import { CHANNELS, SHORTS_PER_CHANNEL } from './config.js';
+import { CHANNELS, SHORTS_PER_CHANNEL, MAX_QUEUE_SIZE } from './config.js';
 import { hasSeen } from './state.js';
 
 // ── Fetch latest Shorts from one channel via yt-dlp ──────────────────────
@@ -22,7 +22,13 @@ function fetchChannelShorts(handle) {
       .filter(Boolean)
       .map(line => {
         const d = JSON.parse(line);
-        return { id: d.id, title: d.title, url: `https://youtube.com/shorts/${d.id}`, channel: handle };
+        return {
+          id:         d.id,
+          title:      d.title,
+          url:        `https://youtube.com/shorts/${d.id}`,
+          channel:    handle,
+          viewCount:  d.view_count || 0,   // already in yt-dlp flat metadata
+        };
       });
   } catch (err) {
     console.warn(`⚠️  Could not fetch ${handle}: ${err.message.split('\n')[0]}`);
@@ -30,20 +36,29 @@ function fetchChannelShorts(handle) {
   }
 }
 
-// ── Scan all channels, return only unseen Shorts ──────────────────────────
+// ── Scan all channels → filter seen → sort by views → return top MAX_QUEUE_SIZE
 export async function scanChannels() {
   console.log(`\n🔍  Scanning ${CHANNELS.length} channels for new Shorts...`);
-  const newShorts = [];
+  const candidates = [];
 
   for (const handle of CHANNELS) {
     const shorts = fetchChannelShorts(handle);
     const fresh  = shorts.filter(s => !hasSeen(s.id));
     console.log(`   ${handle}: ${shorts.length} checked, ${fresh.length} new`);
-    newShorts.push(...fresh);
+    candidates.push(...fresh);
   }
 
-  console.log(`   ✅  ${newShorts.length} new Shorts found total.\n`);
-  return newShorts;
+  // Sort all unseen shorts by view count descending, take top MAX_QUEUE_SIZE
+  const top = candidates
+    .sort((a, b) => b.viewCount - a.viewCount)
+    .slice(0, MAX_QUEUE_SIZE);
+
+  console.log(`   ✅  ${candidates.length} unseen found → top ${top.length} by views queued.\n`);
+  top.forEach((s, i) =>
+    console.log(`   ${i + 1}. [${s.channel}] ${s.title.slice(0, 60)} — ${s.viewCount.toLocaleString()} views`)
+  );
+
+  return top;
 }
 
 // ── Run directly: node monitor.js ────────────────────────────────────────

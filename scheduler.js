@@ -44,8 +44,9 @@ async function runCycle() {
       return;
     }
 
-    newShorts.forEach(s => enqueue(s));
-    console.log(`📬  ${newShorts.length} Shorts added to queue.`);
+    // Mark as seen immediately on enqueue — prevents re-queuing even if upload fails
+    newShorts.forEach(s => { enqueue(s); markSeen(s.id); });
+    console.log(`📬  ${newShorts.length} Shorts added to queue (marked seen).`);
   }
 
   // 3. Take next item from queue
@@ -59,9 +60,6 @@ async function runCycle() {
 
     // Upload with Gemini-generated metadata
     await uploadToYouTube(localPath, item.title, item.channel);
-
-    // Mark as seen so we never re-download
-    markSeen(item.id);
 
     // Update daily counter
     const newCount = incrementDailyCount();

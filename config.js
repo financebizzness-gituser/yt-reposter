@@ -11,6 +11,10 @@ export const CHANNELS = [
 // How many recent Shorts to check per channel on each scan
 export const SHORTS_PER_CHANNEL = 5;
 
+// Max queue size — scan all channels, sort by views, take only top N
+// Keeps queue fresh — always recent high-performing content, never stale
+export const MAX_QUEUE_SIZE = 3;
+
 // Max Shorts to post per day (keeps under 10,000 API quota units)
 // 5 posts × 1,600 units = 8,000 units used, 2,000 left for reads
 export const MAX_POSTS_PER_DAY = 5;
