@@ -15,9 +15,7 @@ export const SHORTS_PER_CHANNEL = 5;
 // Keeps queue fresh — always recent high-performing content, never stale
 export const MAX_QUEUE_SIZE = 3;
 
-// Max Shorts to post per day (keeps under 10,000 API quota units)
-// 5 posts × 1,600 units = 8,000 units used, 2,000 left for reads
-export const MAX_POSTS_PER_DAY = 5;
+// No artificial daily cap — let YouTube API return an error if quota is hit
 
 // Hours between each post
 export const POST_INTERVAL_HOURS = 2;

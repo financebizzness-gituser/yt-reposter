@@ -1,11 +1,10 @@
 /**
  * scheduler.js — Main orchestrator
  *
- * Flow every 2 hours:
- *   1. Check daily post count → stop if limit hit
- *   2. If queue empty → scan channels → fill queue
- *   3. Dequeue next Short → download → upload → mark seen → delete local
- *   4. Repeat at next cron tick
+ * Flow every 5 hours:
+ *   1. If queue empty → scan channels → fill queue (top 3 by views)
+ *   2. Dequeue next Short → download → upload → mark seen → delete local
+ *   3. Repeat at next cron tick
  *
  * Usage:
  *   node scheduler.js          → runs on cron (every 2 hours)
@@ -18,23 +17,16 @@ import { downloadShort, deleteLocal } from './downloader.js';
 import { uploadToYouTube } from './uploader.js';
 import {
   enqueue, dequeue, queueSize,
-  markSeen, getDailyCount, incrementDailyCount, resetDailyCount,
+  markSeen, incrementDailyCount,
 } from './state.js';
-import { MAX_POSTS_PER_DAY, POST_CRON, RESET_CRON } from './config.js';
+import { POST_CRON } from './config.js';
 
 // ── Core: process one post cycle ─────────────────────────────────────────
 async function runCycle() {
   console.log(`\n${'─'.repeat(50)}`);
   console.log(`🕐  ${new Date().toLocaleString()}  |  Cycle start`);
 
-  // 1. Daily limit check
-  const posted = getDailyCount();
-  if (posted >= MAX_POSTS_PER_DAY) {
-    console.log(`🚫  Daily limit reached (${posted}/${MAX_POSTS_PER_DAY}). Skipping until midnight.`);
-    return;
-  }
-
-  // 2. Fill queue if empty
+  // 1. Fill queue if empty
   if (queueSize() === 0) {
     console.log('📭  Queue is empty — scanning channels...');
     const newShorts = await scanChannels();
@@ -61,9 +53,9 @@ async function runCycle() {
     // Upload with Gemini-generated metadata
     await uploadToYouTube(localPath, item.title, item.channel);
 
-    // Update daily counter
+    // Track daily counter (informational only)
     const newCount = incrementDailyCount();
-    console.log(`📊  Posts today: ${newCount}/${MAX_POSTS_PER_DAY} | Queue remaining: ${queueSize()}`);
+    console.log(`📊  Posts today: ${newCount} | Queue remaining: ${queueSize()}`);
 
   } catch (err) {
     console.error(`❌  Error processing ${item.id}: ${err.message}`);
@@ -84,15 +76,10 @@ if (runOnce) {
 } else {
   // Run immediately on start, then on schedule
   console.log(`🚀  YT Reposter started`);
-  console.log(`   Schedule  : every 2 hours`);
-  console.log(`   Daily cap : ${MAX_POSTS_PER_DAY} posts/day`);
+  console.log(`   Schedule  : every 5 hours`);
   console.log(`   Channels  : 5 monitored\n`);
 
   await runCycle(); // run once on startup
 
-  // Post every 2 hours
   cron.schedule(POST_CRON, runCycle);
-
-  // Reset daily counter at midnight
-  cron.schedule(RESET_CRON, resetDailyCount);
 }
